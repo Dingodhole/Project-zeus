@@ -4,9 +4,24 @@ import path from 'path'
 import morgan from 'morgan'
 import bodyParser from 'body-parser'
 import api from './api'
+import fs from 'fs'
+import http from 'http'
+import https from 'https'
 
 const app = express()
-const PORT = process.env.PORT || 5000
+// const PORT = process.env.PORT || 5000
+const DOMAIN = process.env.DOMAIN
+
+// Certificate
+const privateKey = fs.readFileSync('/etc/letsencrypt/live/${DOMAIN}/privkey.pem', 'utf8');
+const certificate = fs.readFileSync('/etc/letsencrypt/live/${DOMAIN}/cert.pem', 'utf8');
+const ca = fs.readFileSync('/etc/letsencrypt/live/${DOMAIN}/chain.pem', 'utf8');
+
+const credentials = {
+	key: privateKey,
+	cert: certificate,
+	ca: ca
+}
 
 // setup the logger
 app.use(morgan('tiny'))
@@ -36,7 +51,10 @@ app.get('*', (request, response) => {
   response.sendFile(path.resolve(__dirname, '../front-end/build', 'index.html'))
 })
 
-app.listen(PORT, () => {
-  console.log("-----------starting-----------")
-  console.log(`Listening on port ${PORT}`)
-});
+httpServer.listen(80, () => {
+	console.log('HTTP Server running on port 80');
+})
+
+httpsServer.listen(443, () => {
+	console.log('HTTPS Server running on port 443');
+})
